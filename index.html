@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rentio — Pożyczaj swój kapitał, zarabiaj na odsetkach</title>
+<meta name="description" content="Rentio — mikroinwestowanie oparte na pożyczce kapitału od 25 000 zł. Odsetki wypłacane miesięcznie (WIBOR + 5 p.p.) lub na koniec roku (WIBOR + 8 p.p.).">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#0a0e1a;
+    --bg2:#0f1629;
+    --card:#141d33;
+    --card2:#1a2540;
+    --accent:#4ade80;
+    --accent2:#22d3ee;
+    --accent3:#a78bfa;
+    --txt:#e8edf7;
+    --muted:#94a3b8;
+    --line:rgba(255,255,255,.08);
+    --grad:linear-gradient(135deg,#4ade80 0%,#22d3ee 100%);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+    background:var(--bg);color:var(--txt);overflow-x:hidden;line-height:1.6;
+  }
+  .bg-orbs{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+  .orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.35;animation:float 18s ease-in-out infinite}
+  .orb1{width:480px;height:480px;background:#22d3ee;top:-120px;left:-80px}
+  .orb2{width:560px;height:560px;background:#a78bfa;bottom:-200px;right:-120px;animation-delay:-6s}
+  .orb3{width:380px;height:380px;background:#4ade80;top:40%;left:55%;animation-delay:-12s}
+  @keyframes float{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(40px,-50px) scale(1.1)}66%{transform:translate(-30px,40px) scale(.95)}}
+
+  .wrap{max-width:1140px;margin:0 auto;padding:0 24px;position:relative;z-index:1}
+
+  /* NAV */
+  nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:rgba(10,14,26,.6);border-bottom:1px solid var(--line)}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:68px}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:22px;letter-spacing:-.5px}
+  .logo .mark{width:34px;height:34px;border-radius:9px;background:var(--grad);display:grid;place-items:center;font-size:18px;color:#06210f;font-weight:900}
+  .navlinks{display:flex;gap:28px;align-items:center}
+  .navlinks a{color:var(--muted);text-decoration:none;font-size:15px;transition:.2s}
+  .navlinks a:hover{color:var(--txt)}
+  .btn{background:var(--grad);color:#06210f;border:none;padding:11px 22px;border-radius:10px;font-weight:700;font-size:15px;cursor:pointer;text-decoration:none;display:inline-block;transition:transform .2s,box-shadow .2s}
+  .btn:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(74,222,128,.3)}
+  .btn-ghost{background:transparent;border:1px solid var(--line);color:var(--txt)}
+  .btn-ghost:hover{border-color:var(--accent);box-shadow:none}
+  @media(max-width:760px){.navlinks a:not(.btn){display:none}}
+
+  /* HERO */
+  .hero{padding:90px 0 60px;text-align:center}
+  .badge{display:inline-flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);padding:7px 16px;border-radius:99px;font-size:13px;color:var(--muted);margin-bottom:28px}
+  .badge .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent);animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  .hero h1{font-size:clamp(36px,6vw,68px);font-weight:900;letter-spacing:-2px;line-height:1.05;margin-bottom:22px}
+  .hero h1 .grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero p.lead{font-size:clamp(17px,2.4vw,21px);color:var(--muted);max-width:680px;margin:0 auto 36px}
+  .hero-cta{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+  .reveal{opacity:0;transform:translateY(30px);transition:opacity .8s cubic-bezier(.2,.7,.3,1),transform .8s cubic-bezier(.2,.7,.3,1)}
+  .reveal.in{opacity:1;transform:none}
+
+  /* STATS */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:64px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:26px 20px;text-align:center}
+  .stat .num{font-size:clamp(26px,4vw,40px);font-weight:900;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .stat .lab{font-size:13px;color:var(--muted);margin-top:6px}
+  @media(max-width:760px){.stats{grid-template-columns:repeat(2,1fr)}}
+
+  /* SECTION */
+  section{padding:80px 0;position:relative;z-index:1}
+  .eyebrow{text-transform:uppercase;letter-spacing:2px;font-size:13px;color:var(--accent2);font-weight:700;margin-bottom:14px;text-align:center}
+  h2.sec{font-size:clamp(28px,4.5vw,44px);font-weight:900;letter-spacing:-1px;text-align:center;margin-bottom:18px}
+  .sub{text-align:center;color:var(--muted);max-width:640px;margin:0 auto 50px;font-size:17px}
+
+  /* OPTIONS */
+  .opts{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+  @media(max-width:760px){.opts{grid-template-columns:1fr}}
+  .opt{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:34px;position:relative;overflow:hidden;transition:transform .3s,border-color .3s}
+  .opt:hover{transform:translateY(-6px);border-color:var(--accent)}
+  .opt.featured{border-color:var(--accent3)}
+  .opt .tag{position:absolute;top:20px;right:20px;font-size:12px;font-weight:700;padding:5px 12px;border-radius:99px;background:rgba(167,139,250,.15);color:var(--accent3)}
+  .opt h3{font-size:24px;font-weight:800;margin-bottom:6px}
+  .opt .rate{font-size:46px;font-weight:900;margin:14px 0 4px;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .opt .rate small{font-size:18px;color:var(--muted);-webkit-text-fill-color:var(--muted)}
+  .opt .form{font-size:14px;color:var(--muted);margin-bottom:20px}
+  .opt ul{list-style:none;margin-top:18px}
+  .opt li{padding:9px 0;border-top:1px solid var(--line);display:flex;gap:10px;font-size:15px}
+  .opt li::before{content:"✓";color:var(--accent);font-weight:900}
+
+  /* CALCULATOR */
+  .calc{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:38px;max-width:920px;margin:0 auto}
+  .calc-grid{display:grid;grid-template-columns:340px 1fr;gap:38px;align-items:center}
+  @media(max-width:760px){.calc-grid{grid-template-columns:1fr}}
+  .field{margin-bottom:26px}
+  .field label{display:flex;justify-content:space-between;font-size:14px;color:var(--muted);margin-bottom:12px}
+  .field label b{color:var(--accent)}
+  input[type=range]{-webkit-appearance:none;width:100%;height:6px;border-radius:99px;background:var(--card2);outline:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--grad);cursor:pointer;box-shadow:0 0 0 4px rgba(74,222,128,.18)}
+  input[type=range]::-moz-range-thumb{width:22px;height:22px;border:none;border-radius:50%;background:#4ade80;cursor:pointer}
+  .toggle{display:flex;background:var(--card2);border-radius:12px;padding:5px;gap:5px}
+  .toggle button{flex:1;background:transparent;border:none;color:var(--muted);padding:11px;border-radius:9px;font-weight:700;font-size:14px;cursor:pointer;transition:.2s}
+  .toggle button.active{background:var(--grad);color:#06210f}
+  .result{text-align:center}
+  .result .big{font-size:clamp(34px,6vw,54px);font-weight:900;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;line-height:1.1}
+  .result .biglab{color:var(--muted);font-size:14px;margin-bottom:24px}
+  .result .row{display:flex;justify-content:space-between;padding:13px 0;border-top:1px solid var(--line);font-size:15px}
+  .result .row span:last-child{font-weight:800}
+  .wibor-note{font-size:13px;color:var(--muted);text-align:center;margin-top:18px}
+
+  /* CHART */
+  .chart-card{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:34px;max-width:920px;margin:0 auto}
+  .chart-card h3{text-align:center;font-size:20px;margin-bottom:8px}
+  .chart-card .chart-sub{text-align:center;color:var(--muted);font-size:14px;margin-bottom:24px}
+  .chart-wrap{position:relative;height:420px}
+
+  /* STEPS */
+  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+  @media(max-width:760px){.steps{grid-template-columns:1fr 1fr}}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:28px;transition:transform .3s}
+  .step:hover{transform:translateY(-6px)}
+  .step .n{width:44px;height:44px;border-radius:12px;background:var(--card2);display:grid;place-items:center;font-weight:900;font-size:18px;color:var(--accent);margin-bottom:16px}
+  .step h4{font-size:17px;margin-bottom:8px}
+  .step p{font-size:14px;color:var(--muted)}
+
+  /* FAQ */
+  .faq{max-width:780px;margin:0 auto}
+  .qa{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:14px;overflow:hidden}
+  .qa summary{padding:20px 24px;cursor:pointer;font-weight:700;font-size:16px;list-style:none;display:flex;justify-content:space-between;align-items:center}
+  .qa summary::-webkit-details-marker{display:none}
+  .qa summary::after{content:"+";font-size:24px;color:var(--accent);transition:transform .3s}
+  .qa[open] summary::after{transform:rotate(45deg)}
+  .qa p{padding:0 24px 22px;color:var(--muted);font-size:15px}
+
+  /* CTA */
+  .final{background:var(--grad);border-radius:28px;padding:60px 40px;text-align:center;color:#06210f;max-width:920px;margin:0 auto}
+  .final h2{font-size:clamp(28px,5vw,42px);font-weight:900;letter-spacing:-1px;margin-bottom:14px}
+  .final p{font-size:18px;margin-bottom:30px;opacity:.85}
+  .final .btn{background:#06210f;color:#fff}
+  .final .btn:hover{box-shadow:0 10px 30px rgba(0,0,0,.3)}
+
+  footer{border-top:1px solid var(--line);padding:40px 0;text-align:center;color:var(--muted);font-size:14px}
+  .disclaimer{max-width:880px;margin:30px auto 0;font-size:12px;color:#64748b;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="bg-orbs"><div class="orb orb1"></div><div class="orb orb2"></div><div class="orb orb3"></div></div>
+
+<nav>
+  <div class="wrap">
+    <div class="logo"><span class="mark">R</span>Rentio</div>
+    <div class="navlinks">
+      <a href="#oferta">Oferta</a>
+      <a href="#kalkulator">Kalkulator</a>
+      <a href="#jak">Jak to działa</a>
+      <a href="#faq">FAQ</a>
+      <a href="#kontakt" class="btn">Zacznij teraz</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="wrap">
+    <div class="badge reveal"><span class="dot"></span> WIBOR 3M dziś: <b id="wiborBadge" style="color:var(--txt);margin-left:4px">3,84%</b></div>
+    <h1 class="reveal">Twój kapitał pracuje.<br><span class="grad">Ty odbierasz odsetki.</span></h1>
+    <p class="lead reveal">Pożycz nam od 25 000 zł, a my wypłacimy Ci odsetki — co miesiąc lub na koniec roku. Oprocentowanie powiązane z WIBOR, jasne zasady, umowa odnawiana co rok.</p>
+    <div class="hero-cta reveal">
+      <a href="#kalkulator" class="btn">Policz swoje odsetki</a>
+      <a href="#oferta" class="btn btn-ghost">Zobacz ofertę</a>
+    </div>
+
+    <div class="stats">
+      <div class="stat reveal"><div class="num" data-count="25">0</div><div class="lab">tys. zł — minimalna kwota</div></div>
+      <div class="stat reveal"><div class="num" data-count="5">0</div><div class="lab">mln zł — maksymalna kwota</div></div>
+      <div class="stat reveal"><div class="num" data-suffix="%" data-count="11.84" data-dec="2">0</div><div class="lab">do nawet rocznie (WIBOR+8pp)</div></div>
+      <div class="stat reveal"><div class="num" data-count="12">0</div><div class="lab">miesięcy — minimalny okres</div></div>
+    </div>
+  </div>
+</header>
+
+<!-- OFERTA -->
+<section id="oferta">
+  <div class="wrap">
+    <div class="eyebrow reveal">Dwa warianty wypłaty</div>
+    <h2 class="sec reveal">Wybierz, jak chcesz zarabiać</h2>
+    <p class="sub reveal">Im dłużej kapitał pracuje bez wypłaty, tym wyższe oprocentowanie. Decyzja należy do Ciebie.</p>
+    <div class="opts">
+      <div class="opt reveal">
+        <h3>Wypłata miesięczna</h3>
+        <div class="rate">WIBOR + 5<small> p.p.</small></div>
+        <div class="form">= <b id="rateMonthly">8,84%</b> w skali roku przy dzisiejszym WIBOR</div>
+        <ul>
+          <li>Odsetki na konto co miesiąc — stały, regularny przychód</li>
+          <li>Idealne, jeśli zależy Ci na płynności i cash flow</li>
+          <li>Minimalna kwota 25 000 zł</li>
+          <li>Minimalny okres: 12 miesięcy</li>
+        </ul>
+      </div>
+      <div class="opt featured reveal">
+        <span class="tag">Wyższy zysk</span>
+        <h3>Wypłata na koniec roku</h3>
+        <div class="rate">WIBOR + 8<small> p.p.</small></div>
+        <div class="form">= <b id="rateYearly">11,84%</b> w skali roku przy dzisiejszym WIBOR</div>
+        <ul>
+          <li>Pełne odsetki wypłacane jednorazowo po 12 miesiącach</li>
+          <li>Najwyższe oprocentowanie w ofercie</li>
+          <li>Minimalna kwota 25 000 zł</li>
+          <li>Minimalny okres: 12 miesięcy</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- KALKULATOR -->
+<section id="kalkulator">
+  <div class="wrap">
+    <div class="eyebrow reveal">Kalkulator</div>
+    <h2 class="sec reveal">Ile zarobisz?</h2>
+    <p class="sub reveal">Przesuń suwak, wybierz wariant i zobacz wynik na żywo.</p>
+    <div class="calc reveal">
+      <div class="calc-grid">
+        <div>
+          <div class="field">
+            <label>Kwota pożyczki <b id="amtVal">100 000 zł</b></label>
+            <input type="range" id="amt" min="25000" max="5000000" step="5000" value="100000">
+          </div>
+          <div class="field">
+            <label>WIBOR (baza) <b id="wiborVal">3,84%</b></label>
+            <input type="range" id="wibor" min="0" max="10" step="0.01" value="3.84">
+          </div>
+          <div class="field">
+            <label style="margin-bottom:12px">Wariant wypłaty</label>
+            <div class="toggle">
+              <button id="bMonthly" class="active" onclick="setMode('m')">Miesięczna<br><small style="font-weight:400;opacity:.8">WIBOR+5pp</small></button>
+              <button id="bYearly" onclick="setMode('y')">Roczna<br><small style="font-weight:400;opacity:.8">WIBOR+8pp</small></button>
+            </div>
+          </div>
+        </div>
+        <div class="result">
+          <div class="big" id="mainOut">0 zł</div>
+          <div class="biglab" id="mainLab">odsetek miesięcznie</div>
+          <div class="row"><span>Oprocentowanie roczne</span><span id="rOut">—</span></div>
+          <div class="row"><span>Odsetki miesięcznie</span><span id="mOut">—</span></div>
+          <div class="row"><span>Odsetki rocznie</span><span id="yOut">—</span></div>
+          <div class="row"><span>Kapitał po 12 mies.</span><span id="tOut">—</span></div>
+        </div>
+      </div>
+      <p class="wibor-note">Wyliczenia poglądowe. Faktyczne oprocentowanie ustala umowa, odnawiana co rok wraz ze zmianą stóp procentowych.</p>
+    </div>
+  </div>
+</section>
+
+<!-- WYKRES -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow reveal">Porównanie</div>
+    <h2 class="sec reveal">Roczne odsetki dla 25k, 100k i 250k</h2>
+    <p class="sub reveal">Przy dzisiejszym WIBOR 3,84%. Słupki: wariant miesięczny (8,84%) vs roczny (11,84%).</p>
+    <div class="chart-card reveal">
+      <h3>Ile zarobisz w skali roku</h3>
+      <div class="chart-sub">Wartości w złotych — odsetki za 12 miesięcy</div>
+      <div class="chart-wrap"><canvas id="barChart"></canvas></div>
+    </div>
+  </div>
+</section>
+
+<!-- JAK TO DZIAŁA -->
+<section id="jak">
+  <div class="wrap">
+    <div class="eyebrow reveal">Proces</div>
+    <h2 class="sec reveal">Jak to działa</h2>
+    <p class="sub reveal">Cztery proste kroki od decyzji do pierwszych odsetek.</p>
+    <div class="steps">
+      <div class="step reveal"><div class="n">1</div><h4>Wybierasz kwotę</h4><p>Od 25 000 do 5 000 000 zł. Decydujesz, ile kapitału chcesz powierzyć.</p></div>
+      <div class="step reveal"><div class="n">2</div><h4>Wybierasz wariant</h4><p>Odsetki co miesiąc (WIBOR+5pp) albo wyższe na koniec roku (WIBOR+8pp).</p></div>
+      <div class="step reveal"><div class="n">3</div><h4>Podpisujemy umowę</h4><p>Jasna umowa na min. 12 miesięcy, odnawiana co rok wraz ze stopami procentowymi.</p></div>
+      <div class="step reveal"><div class="n">4</div><h4>Odbierasz odsetki</h4><p>Wypłaty trafiają na Twoje konto zgodnie z wybranym harmonogramem.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="wrap">
+    <div class="eyebrow reveal">FAQ</div>
+    <h2 class="sec reveal">Najczęstsze pytania</h2>
+    <div class="faq" style="margin-top:40px">
+      <details class="qa reveal"><summary>Jaka jest minimalna kwota?</summary><p>Minimalna kwota pożyczki to 25 000 zł. Maksymalna to 5 000 000 zł.</p></details>
+      <details class="qa reveal"><summary>Jak naliczane są odsetki?</summary><p>Oprocentowanie jest powiązane z WIBOR. Przy wypłacie miesięcznej to WIBOR + 5 p.p., a przy wypłacie na koniec roku WIBOR + 8 p.p. Dziś WIBOR 3M wynosi 3,84%, co daje odpowiednio 8,84% i 11,84% w skali roku.</p></details>
+      <details class="qa reveal"><summary>Na jak długo zawiera się umowę?</summary><p>Pożyczka jest udzielana minimum na 1 rok. Umowa jest odnawiana co roku, ponieważ zmieniają się stopy procentowe — dzięki temu oprocentowanie pozostaje adekwatne do aktualnego WIBOR.</p></details>
+      <details class="qa reveal"><summary>Kiedy dostanę odsetki?</summary><p>W wariancie miesięcznym odsetki wpływają na konto co miesiąc. W wariancie rocznym całość odsetek wypłacana jest jednorazowo po zakończeniu 12-miesięcznego okresu.</p></details>
+      <details class="qa reveal"><summary>Co się dzieje po roku?</summary><p>Umowa jest odnawiana na kolejny okres z oprocentowaniem przeliczonym według aktualnego WIBOR. Możesz też zakończyć współpracę i odebrać kapitał.</p></details>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section id="kontakt">
+  <div class="wrap">
+    <div class="final reveal">
+      <h2>Gotowy, by Twój kapitał zaczął pracować?</h2>
+      <p>Skontaktuj się z nami i poznaj szczegóły dopasowane do Twojej kwoty.</p>
+      <a href="mailto:adam.kubiak@fitbymed.com" class="btn">Napisz do nas</a>
+    </div>
+    <p class="disclaimer">Niniejsza strona ma charakter informacyjny i nie stanowi oferty w rozumieniu art. 66 Kodeksu cywilnego ani rekomendacji inwestycyjnej. Przedstawione wyliczenia są poglądowe i zależą od aktualnej wysokości wskaźnika WIBOR oraz warunków indywidualnej umowy. Inwestowanie i udzielanie pożyczek wiąże się z ryzykiem. Przed podjęciem decyzji zapoznaj się z warunkami umowy.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">© <span id="yr"></span> Rentio. Wszelkie prawa zastrzeżone.</div>
+</footer>
+
+<script>
+const fmt = n => Math.round(n).toLocaleString('pl-PL') + ' zł';
+const pct = n => n.toLocaleString('pl-PL',{minimumFractionDigits:2,maximumFractionDigits:2}) + '%';
+document.getElementById('yr').textContent = new Date().getFullYear();
+
+// ---- Calculator ----
+let mode = 'm';
+const amt = document.getElementById('amt');
+const wibor = document.getElementById('wibor');
+function setMode(m){
+  mode = m;
+  document.getElementById('bMonthly').classList.toggle('active', m==='m');
+  document.getElementById('bYearly').classList.toggle('active', m==='y');
+  calc();
+}
+function rates(){
+  const w = parseFloat(wibor.value);
+  return {monthly:(w+5)/100, yearly:(w+8)/100, w};
+}
+function calc(){
+  const A = parseFloat(amt.value);
+  const {monthly,yearly,w} = rates();
+  document.getElementById('amtVal').textContent = A.toLocaleString('pl-PL')+' zł';
+  document.getElementById('wiborVal').textContent = pct(w);
+  document.getElementById('wiborBadge').textContent = pct(w);
+  document.getElementById('rateMonthly').textContent = pct(w+5);
+  document.getElementById('rateYearly').textContent = pct(w+8);
+
+  const annualRate = mode==='m'? monthly : yearly;
+  const annualInt = A*annualRate;
+  const monthlyInt = annualInt/12;
+
+  document.getElementById('rOut').textContent = pct(annualRate*100);
+  document.getElementById('mOut').textContent = fmt(monthlyInt);
+  document.getElementById('yOut').textContent = fmt(annualInt);
+  document.getElementById('tOut').textContent = fmt(A+annualInt);
+
+  if(mode==='m'){
+    document.getElementById('mainOut').textContent = fmt(monthlyInt);
+    document.getElementById('mainLab').textContent = 'odsetek miesięcznie (na konto co miesiąc)';
+  }else{
+    document.getElementById('mainOut').textContent = fmt(annualInt);
+    document.getElementById('mainLab').textContent = 'odsetek na koniec roku (jednorazowo)';
+  }
+}
+amt.addEventListener('input', calc);
+wibor.addEventListener('input', ()=>{calc(); updateChart();});
+calc();
+
+// ---- Chart ----
+let chart;
+function chartData(){
+  const w = parseFloat(wibor.value);
+  const amts = [25000,100000,250000];
+  const m = amts.map(a=>Math.round(a*(w+5)/100));
+  const y = amts.map(a=>Math.round(a*(w+8)/100));
+  return {amts,m,y,w};
+}
+function buildChart(){
+  const ctx = document.getElementById('barChart');
+  const d = chartData();
+  const g1 = ctx.getContext('2d').createLinearGradient(0,0,0,420);
+  g1.addColorStop(0,'#4ade80'); g1.addColorStop(1,'#22d3ee');
+  const g2 = ctx.getContext('2d').createLinearGradient(0,0,0,420);
+  g2.addColorStop(0,'#a78bfa'); g2.addColorStop(1,'#6366f1');
+  chart = new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels:['25 000 zł','100 000 zł','250 000 zł'],
+      datasets:[
+        {label:'Wypłata miesięczna (WIBOR+5pp)',data:d.m,backgroundColor:g1,borderRadius:10,maxBarThickness:70},
+        {label:'Wypłata roczna (WIBOR+8pp)',data:d.y,backgroundColor:g2,borderRadius:10,maxBarThickness:70}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      animation:{duration:1400,easing:'easeOutQuart'},
+      plugins:{
+        legend:{labels:{color:'#94a3b8',font:{size:13},usePointStyle:true,pointStyle:'rectRounded',padding:18}},
+        tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.raw.toLocaleString('pl-PL')+' zł / rok'}}
+      },
+      scales:{
+        x:{ticks:{color:'#e8edf7',font:{size:14,weight:'600'}},grid:{display:false}},
+        y:{ticks:{color:'#94a3b8',callback:v=>v.toLocaleString('pl-PL')+' zł'},grid:{color:'rgba(255,255,255,.06)'}}
+      }
+    }
+  });
+}
+function updateChart(){
+  if(!chart) return;
+  const d = chartData();
+  chart.data.datasets[0].data = d.m;
+  chart.data.datasets[1].data = d.y;
+  chart.update();
+}
+
+// ---- Reveal on scroll ----
+const io = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
+},{threshold:.15});
+document.querySelectorAll('.reveal').forEach((el,i)=>{ el.style.transitionDelay=(i%4*70)+'ms'; io.observe(el); });
+
+// ---- Count-up stats ----
+function countUp(el){
+  const target = parseFloat(el.dataset.count);
+  const dec = parseInt(el.dataset.dec||0);
+  const suffix = el.dataset.suffix||'';
+  let cur=0; const steps=60; const inc=target/steps;
+  const t=setInterval(()=>{
+    cur+=inc;
+    if(cur>=target){cur=target;clearInterval(t);}
+    el.textContent = cur.toLocaleString('pl-PL',{minimumFractionDigits:dec,maximumFractionDigits:dec})+suffix;
+  },18);
+}
+const sio = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{ if(e.isIntersecting){ countUp(e.target); sio.unobserve(e.target);} });
+},{threshold:.5});
+document.querySelectorAll('[data-count]').forEach(el=>sio.observe(el));
+
+// ---- Build chart when visible ----
+const cio = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{ if(e.isIntersecting){ buildChart(); cio.unobserve(e.target);} });
+},{threshold:.3});
+cio.observe(document.getElementById('barChart'));
+</script>
+</body>
+</html>
