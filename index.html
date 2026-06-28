@@ -108,6 +108,9 @@
   .result .row{display:flex;justify-content:space-between;padding:13px 0;border-top:1px solid var(--line);font-size:15px}
   .result .row span:last-child{font-weight:800}
   .wibor-note{font-size:13px;color:var(--muted);text-align:center;margin-top:18px}
+  .big-note{max-height:0;opacity:0;overflow:hidden;text-align:center;margin-top:0;padding:0 18px;border-radius:12px;background:rgba(167,139,250,.12);border:1px solid transparent;color:var(--txt);font-size:15px;transition:all .45s cubic-bezier(.2,.7,.3,1)}
+  .big-note.show{max-height:90px;opacity:1;margin-top:20px;padding:16px 18px;border-color:rgba(167,139,250,.4)}
+  .big-note a{color:var(--accent3);font-weight:700;text-decoration:none;white-space:nowrap}
 
   /* CHART */
   .chart-card{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:34px;max-width:920px;margin:0 auto}
@@ -173,7 +176,7 @@
 
     <div class="stats">
       <div class="stat reveal"><div class="num" data-count="25">0</div><div class="lab">tys. zł — minimalna kwota</div></div>
-      <div class="stat reveal"><div class="num" data-count="5">0</div><div class="lab">mln zł — maksymalna kwota</div></div>
+      <div class="stat reveal"><div class="num" data-count="1">0</div><div class="lab">mln zł — w standardzie (więcej? rozmawiamy)</div></div>
       <div class="stat reveal"><div class="num" data-suffix="%" data-count="11.84" data-dec="2">0</div><div class="lab">do nawet rocznie (WIBOR+8pp)</div></div>
       <div class="stat reveal"><div class="num" data-count="12">0</div><div class="lab">miesięcy — minimalny okres</div></div>
     </div>
@@ -219,17 +222,13 @@
   <div class="wrap">
     <div class="eyebrow reveal">Kalkulator</div>
     <h2 class="sec reveal">Ile zarobisz?</h2>
-    <p class="sub reveal">Przesuń suwak, wybierz wariant i zobacz wynik na żywo.</p>
+    <p class="sub reveal">Przesuń suwak, wybierz wariant i zobacz wynik na żywo. Liczone przy stałym WIBOR 3M = <b style="color:var(--accent)">3,84%</b>.</p>
     <div class="calc reveal">
       <div class="calc-grid">
         <div>
           <div class="field">
             <label>Kwota pożyczki <b id="amtVal">100 000 zł</b></label>
-            <input type="range" id="amt" min="25000" max="5000000" step="5000" value="100000">
-          </div>
-          <div class="field">
-            <label>WIBOR (baza) <b id="wiborVal">3,84%</b></label>
-            <input type="range" id="wibor" min="0" max="10" step="0.01" value="3.84">
+            <input type="range" id="amt" min="25000" max="1000000" step="5000" value="100000">
           </div>
           <div class="field">
             <label style="margin-bottom:12px">Wariant wypłaty</label>
@@ -248,6 +247,7 @@
           <div class="row"><span>Kapitał po 12 mies.</span><span id="tOut">—</span></div>
         </div>
       </div>
+      <div id="bigNote" class="big-note">Kwoty <b>powyżej 1 000 000 zł</b> — warunki ustalane indywidualnie. <a href="#kontakt">Porozmawiajmy →</a></div>
       <p class="wibor-note">Wyliczenia poglądowe. Faktyczne oprocentowanie ustala umowa, odnawiana co rok wraz ze zmianą stóp procentowych.</p>
     </div>
   </div>
@@ -258,10 +258,16 @@
   <div class="wrap">
     <div class="eyebrow reveal">Porównanie</div>
     <h2 class="sec reveal">Roczne odsetki dla 25k, 100k i 250k</h2>
-    <p class="sub reveal">Przy dzisiejszym WIBOR 3,84%. Słupki: wariant miesięczny (8,84%) vs roczny (11,84%).</p>
+    <p class="sub reveal">Przy stałym WIBOR 3,84%. Wybierz wariant wypłaty i zobacz odsetki dla każdej kwoty.</p>
     <div class="chart-card reveal">
       <h3>Ile zarobisz w skali roku</h3>
       <div class="chart-sub">Wartości w złotych — odsetki za 12 miesięcy</div>
+      <div class="chart-toggle">
+        <div class="toggle" style="max-width:380px;margin:0 auto 26px">
+          <button id="cMonthly" class="active" onclick="setChartMode('m')">Miesięczna<br><small style="font-weight:400;opacity:.8">WIBOR+5pp = 8,84%</small></button>
+          <button id="cYearly" onclick="setChartMode('y')">Roczna<br><small style="font-weight:400;opacity:.8">WIBOR+8pp = 11,84%</small></button>
+        </div>
+      </div>
       <div class="chart-wrap"><canvas id="barChart"></canvas></div>
     </div>
   </div>
@@ -274,7 +280,7 @@
     <h2 class="sec reveal">Jak to działa</h2>
     <p class="sub reveal">Cztery proste kroki od decyzji do pierwszych odsetek.</p>
     <div class="steps">
-      <div class="step reveal"><div class="n">1</div><h4>Wybierasz kwotę</h4><p>Od 25 000 do 5 000 000 zł. Decydujesz, ile kapitału chcesz powierzyć.</p></div>
+      <div class="step reveal"><div class="n">1</div><h4>Wybierasz kwotę</h4><p>Od 25 000 do 1 000 000 zł. Większe kwoty — na indywidualnych warunkach.</p></div>
       <div class="step reveal"><div class="n">2</div><h4>Wybierasz wariant</h4><p>Odsetki co miesiąc (WIBOR+5pp) albo wyższe na koniec roku (WIBOR+8pp).</p></div>
       <div class="step reveal"><div class="n">3</div><h4>Podpisujemy umowę</h4><p>Jasna umowa na min. 12 miesięcy, odnawiana co rok wraz ze stopami procentowymi.</p></div>
       <div class="step reveal"><div class="n">4</div><h4>Odbierasz odsetki</h4><p>Wypłaty trafiają na Twoje konto zgodnie z wybranym harmonogramem.</p></div>
@@ -288,7 +294,7 @@
     <div class="eyebrow reveal">FAQ</div>
     <h2 class="sec reveal">Najczęstsze pytania</h2>
     <div class="faq" style="margin-top:40px">
-      <details class="qa reveal"><summary>Jaka jest minimalna kwota?</summary><p>Minimalna kwota pożyczki to 25 000 zł. Maksymalna to 5 000 000 zł.</p></details>
+      <details class="qa reveal"><summary>Jaka jest minimalna i maksymalna kwota?</summary><p>Minimalna kwota pożyczki to 25 000 zł. W standardowej ofercie obsługujemy kwoty do 1 000 000 zł. Powyżej 1 mln zł warunki ustalamy indywidualnie — wtedy zapraszamy na rozmowę.</p></details>
       <details class="qa reveal"><summary>Jak naliczane są odsetki?</summary><p>Oprocentowanie jest powiązane z WIBOR. Przy wypłacie miesięcznej to WIBOR + 5 p.p., a przy wypłacie na koniec roku WIBOR + 8 p.p. Dziś WIBOR 3M wynosi 3,84%, co daje odpowiednio 8,84% i 11,84% w skali roku.</p></details>
       <details class="qa reveal"><summary>Na jak długo zawiera się umowę?</summary><p>Pożyczka jest udzielana minimum na 1 rok. Umowa jest odnawiana co roku, ponieważ zmieniają się stopy procentowe — dzięki temu oprocentowanie pozostaje adekwatne do aktualnego WIBOR.</p></details>
       <details class="qa reveal"><summary>Kiedy dostanę odsetki?</summary><p>W wariancie miesięcznym odsetki wpływają na konto co miesiąc. W wariancie rocznym całość odsetek wypłacana jest jednorazowo po zakończeniu 12-miesięcznego okresu.</p></details>
@@ -319,9 +325,9 @@ const pct = n => n.toLocaleString('pl-PL',{minimumFractionDigits:2,maximumFracti
 document.getElementById('yr').textContent = new Date().getFullYear();
 
 // ---- Calculator ----
+const WIBOR = 3.84; // stały WIBOR 3M (stan na 24.06.2026)
 let mode = 'm';
 const amt = document.getElementById('amt');
-const wibor = document.getElementById('wibor');
 function setMode(m){
   mode = m;
   document.getElementById('bMonthly').classList.toggle('active', m==='m');
@@ -329,14 +335,13 @@ function setMode(m){
   calc();
 }
 function rates(){
-  const w = parseFloat(wibor.value);
+  const w = WIBOR;
   return {monthly:(w+5)/100, yearly:(w+8)/100, w};
 }
 function calc(){
   const A = parseFloat(amt.value);
   const {monthly,yearly,w} = rates();
   document.getElementById('amtVal').textContent = A.toLocaleString('pl-PL')+' zł';
-  document.getElementById('wiborVal').textContent = pct(w);
   document.getElementById('wiborBadge').textContent = pct(w);
   document.getElementById('rateMonthly').textContent = pct(w+5);
   document.getElementById('rateYearly').textContent = pct(w+8);
@@ -357,39 +362,42 @@ function calc(){
     document.getElementById('mainOut').textContent = fmt(annualInt);
     document.getElementById('mainLab').textContent = 'odsetek na koniec roku (jednorazowo)';
   }
+  document.getElementById('bigNote').classList.toggle('show', A >= parseFloat(amt.max));
 }
 amt.addEventListener('input', calc);
-wibor.addEventListener('input', ()=>{calc(); updateChart();});
 calc();
 
 // ---- Chart ----
 let chart;
 function chartData(){
-  const w = parseFloat(wibor.value);
+  const w = WIBOR;
   const amts = [25000,100000,250000];
   const m = amts.map(a=>Math.round(a*(w+5)/100));
   const y = amts.map(a=>Math.round(a*(w+8)/100));
   return {amts,m,y,w};
 }
+let chartMode = 'm';
+function chartCfg(){
+  const d = chartData();
+  if(chartMode==='m') return {data:d.m, label:'Wypłata miesięczna (WIBOR+5pp = 8,84%)', c0:'#4ade80', c1:'#22d3ee'};
+  return {data:d.y, label:'Wypłata roczna (WIBOR+8pp = 11,84%)', c0:'#a78bfa', c1:'#6366f1'};
+}
 function buildChart(){
   const ctx = document.getElementById('barChart');
-  const d = chartData();
-  const g1 = ctx.getContext('2d').createLinearGradient(0,0,0,420);
-  g1.addColorStop(0,'#4ade80'); g1.addColorStop(1,'#22d3ee');
-  const g2 = ctx.getContext('2d').createLinearGradient(0,0,0,420);
-  g2.addColorStop(0,'#a78bfa'); g2.addColorStop(1,'#6366f1');
+  const cfg = chartCfg();
+  const g = ctx.getContext('2d').createLinearGradient(0,0,0,420);
+  g.addColorStop(0,cfg.c0); g.addColorStop(1,cfg.c1);
   chart = new Chart(ctx,{
     type:'bar',
     data:{
       labels:['25 000 zł','100 000 zł','250 000 zł'],
       datasets:[
-        {label:'Wypłata miesięczna (WIBOR+5pp)',data:d.m,backgroundColor:g1,borderRadius:10,maxBarThickness:70},
-        {label:'Wypłata roczna (WIBOR+8pp)',data:d.y,backgroundColor:g2,borderRadius:10,maxBarThickness:70}
+        {label:cfg.label,data:cfg.data,backgroundColor:g,borderRadius:10,maxBarThickness:90}
       ]
     },
     options:{
       responsive:true,maintainAspectRatio:false,
-      animation:{duration:1400,easing:'easeOutQuart'},
+      animation:{duration:1100,easing:'easeOutQuart'},
       plugins:{
         legend:{labels:{color:'#94a3b8',font:{size:13},usePointStyle:true,pointStyle:'rectRounded',padding:18}},
         tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.raw.toLocaleString('pl-PL')+' zł / rok'}}
@@ -401,11 +409,18 @@ function buildChart(){
     }
   });
 }
-function updateChart(){
-  if(!chart) return;
-  const d = chartData();
-  chart.data.datasets[0].data = d.m;
-  chart.data.datasets[1].data = d.y;
+function setChartMode(m){
+  chartMode = m;
+  document.getElementById('cMonthly').classList.toggle('active', m==='m');
+  document.getElementById('cYearly').classList.toggle('active', m==='y');
+  if(!chart){ buildChart(); return; }
+  const cfg = chartCfg();
+  const ctx = document.getElementById('barChart').getContext('2d');
+  const g = ctx.createLinearGradient(0,0,0,420);
+  g.addColorStop(0,cfg.c0); g.addColorStop(1,cfg.c1);
+  chart.data.datasets[0].data = cfg.data;
+  chart.data.datasets[0].label = cfg.label;
+  chart.data.datasets[0].backgroundColor = g;
   chart.update();
 }
 
